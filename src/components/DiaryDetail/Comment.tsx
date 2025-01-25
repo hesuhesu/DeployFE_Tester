@@ -30,9 +30,29 @@ const Comment: React.FC<Props> = ({ params }) => {
         })
     }, [params]);
 
+    // Access Token 재발급 함수
+    const refreshAccessToken = async () => {
+        const token = localStorage.getItem('refreshToken');
+
+        try {
+            const response = await axios.post(`${HOST}:${PORT}/auth/token`,
+                token,
+                {
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+            localStorage.setItem('accessToken', response.data.accessToken);
+        }
+        catch (error) {
+            const { message } = error.response.data;
+            errorMessage(message);
+        }
+    }
+
     const handleAddComment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault(); // 기본 동작 방지
-        const token = localStorage.getItem('jwtToken');
+        const token = localStorage.getItem('accessToken');
         if (!token) {
             errorMessage("로그인 해주세요");
             return;
@@ -61,18 +81,24 @@ const Comment: React.FC<Props> = ({ params }) => {
                 setLoadingMessage(false);
             }, 500);
         } catch (error) {
-            setLoadingMessage(false); // 에러 발생 시 메시지 숨기기
-            if (error.response.status === 401) {
-                errorMessage("토큰 만료! 재 로그인 필요합니다");
-                localStorage.clear();
-            } else {
-                errorMessage("데이터 요청 실패..");
+            if (error.response.status === 403) {
+                // Access Token이 만료된 경우 Refresh Token으로 재발급
+                await refreshAccessToken();
+                return handleAddComment(e); // 재시도
             }
+            const { message } = error.response.data;
+            setLoadingMessage(false); // 에러 발생 시 메시지 숨기기
+            errorMessage(message);
         }
     }
 
     const handleDeleteComment = async (index: number, username: string) => {
-        const token = localStorage.getItem('jwtToken');
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            errorMessage("로그인 해주세요");
+            return;
+        }
+
         try {
             await axios.delete(`${HOST}:${PORT}/diary/delete_comment`, {
                 data: { // data 속성 사용
@@ -92,21 +118,13 @@ const Comment: React.FC<Props> = ({ params }) => {
             }, 300); // 애니메이션 시간과 일치시킴
 
         } catch (error) {
-            if (error.response.status === 401) {
-                errorMessage("로그인 해주세요!");
+            if (error.response.status === 403) {
+                // Access Token이 만료된 경우 Refresh Token으로 재발급
+                await refreshAccessToken();
+                return handleDeleteComment(index, username); // 재시도
             }
-            else if (error.response.status === 402) {
-                errorMessage("작성자와 일치하지 않습니다.");
-            }
-            else if (error.response.status === 403) {
-                errorMessage("권한이 없습니다..");
-            }
-            else if (error.response.status === 404) {
-                errorMessage("Comment 가 없습니다..?");
-            }
-            else {
-                errorMessage("Error");
-            }
+            const { message } = error.response.data;
+            errorMessage(message);
         }
     };
 

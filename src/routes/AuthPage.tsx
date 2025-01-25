@@ -42,7 +42,9 @@ const AuthPage: React.FC = () => {
             const response = await axios.post(`${HOST}:${PORT}/auth/login`, loginData);
 
             // 토큰을 localStorage에 저장
-            localStorage.setItem('jwtToken', response.data.token);
+            localStorage.setItem('accessToken', response.data.accessToken);
+            localStorage.setItem('refreshToken', response.data.refreshToken);
+            
             successMessage("환영합니다 회원님!");
             navigate(-1);
             return;
