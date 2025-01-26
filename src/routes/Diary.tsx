@@ -5,7 +5,7 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { authCheck } from '../utils/authCheck.tsx';
 import { fadeIn, jelloHorizontal } from '../utils/Animation.tsx';
-import Spinner from '../components/Spinner.tsx';
+import Spinner from '../utils/Spinner.tsx';
 import Pagination from '../components/Diary/Pagination.tsx';
 import { CategoryList, HOST, PORT } from '../utils/Variable.tsx';
 import SelectCategory from '../components/Diary/SelectCategory.tsx';

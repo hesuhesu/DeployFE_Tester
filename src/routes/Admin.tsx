@@ -18,7 +18,7 @@ const Admin: React.FC = () => {
       <Sidebar>
         <h2>메뉴</h2>
         <ul>
-          <li>게시물 영역</li>
+          <li>게시물 관리</li>
           <li>사용자 관리</li>
           <li onClick={() => navigate("/")}>홈으로</li>
           <li onClick={handleLogout}>로그아웃</li>
@@ -34,7 +34,7 @@ const Admin: React.FC = () => {
 
 const AdminContainer = styled.div`
   display: grid;
-  grid-template-columns: 1fr 3fr; // Sidebar + Main Content
+  grid-template-columns: 1fr 4fr; // Sidebar + Main Content
   grid-template-rows: auto 1fr; // Header + Content
   height: 100vh;
 `;
@@ -55,6 +55,8 @@ const Sidebar = styled.aside`
 
 const MainContent = styled.main`
   padding: 1rem;
+  display: flex;
+  
 `;
 
 export default Admin;

@@ -3,6 +3,8 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { HOST, PORT } from '../../utils/Variable.tsx';
 import { errorMessage } from '../../utils/SweetAlertEvent.tsx';
+import LoadingOverlay from '../../utils/LoadingOverlay.tsx';
+import { refreshAccessToken } from '../../api/Comment.tsx';
 
 interface Props {
     params: string | undefined;
@@ -29,26 +31,6 @@ const Comment: React.FC<Props> = ({ params }) => {
             console.error(error);
         })
     }, [params]);
-
-    // Access Token 재발급 함수
-    const refreshAccessToken = async () => {
-        const token = localStorage.getItem('refreshToken');
-
-        try {
-            const response = await axios.post(`${HOST}:${PORT}/auth/token`,
-                token,
-                {
-                    headers: {
-                        'Authorization': token
-                    }
-                });
-            localStorage.setItem('accessToken', response.data.accessToken);
-        }
-        catch (error) {
-            const { message } = error.response.data;
-            errorMessage(message);
-        }
-    }
 
     const handleAddComment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault(); // 기본 동작 방지
@@ -131,11 +113,7 @@ const Comment: React.FC<Props> = ({ params }) => {
     return (
         <CommentContainer>
             <h2>Comment</h2>
-            {loadingMessage && (
-                <LoadingOverlay>
-                    <LoadingText>댓글 작성 중...</LoadingText>
-                </LoadingOverlay>
-            )}
+            {loadingMessage &&  <LoadingOverlay/>}
             <CommentList>
                 {comments.map((comment, index) => (
                     <CommentItem
@@ -149,6 +127,7 @@ const Comment: React.FC<Props> = ({ params }) => {
                     </CommentItem>
                 ))}
             </CommentList>
+            
             <form onSubmit={handleAddComment}>
                 <label htmlFor="content">내용 입력:</label>
                 <textarea
@@ -208,25 +187,6 @@ const CommentContainer = styled.div`
             background-color: darkred;
         }
     }
-`;
-
-const LoadingOverlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000; // 다른 요소보다 위에 표시
-`;
-
-const LoadingText = styled.div`
-    color: rgba(214, 230, 245, 0.925);
-    font-size: 1.5rem;
-    transition: opacity 0.25s ease, transform 0.25s ease;
 `;
 
 const CommentList = styled.div`

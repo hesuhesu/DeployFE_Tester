@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import styled, { css } from 'styled-components';
 import { jelloVertical } from '../utils/Animation.tsx';
 import { errorMessage, successMessage } from '../utils/SweetAlertEvent.tsx';
 import { authCheck } from '../utils/authCheck.tsx';
 // import KakaoLogin from '../components/KakaoLogin.tsx';
-import { HOST, PORT, ADMIN_AUTH, ADMIN_NAME, ADMIN_PASSWORD } from '../utils/Variable.tsx';
+import { ADMIN_AUTH, ADMIN_NAME, ADMIN_PASSWORD } from '../utils/Variable.tsx';
+import { login, register } from '../api/Auth.tsx';
 
 interface LoginItem {
     username: string;
@@ -39,53 +39,37 @@ const AuthPage: React.FC = () => {
         }
 
         try {
-            const response = await axios.post(`${HOST}:${PORT}/auth/login`, loginData);
-
-            // 토큰을 localStorage에 저장
+            const response = await login(loginData);
             localStorage.setItem('accessToken', response.data.accessToken);
             localStorage.setItem('refreshToken', response.data.refreshToken);
-            
             successMessage("환영합니다 회원님!");
             navigate(-1);
             return;
         } catch (error) {
-            if (error.response) {
-                if (error.response.status === 401) {
-                    errorMessage("Failed Login");
-                } else if (error.response.status === 500) {
-                    errorMessage("server Error");
-                }
-            } else {
-                errorMessage("ETC Error");
-            }
+            const { message } = error.response.data;
+            errorMessage(message);
         }
     };
 
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`${HOST}:${PORT}/auth/register`, loginData);
+            await register(loginData);
             successMessage("회원 가입 완료!")
         } catch (error) {
-            if (error.response) {
-                if (error.response.status === 400) {
-                    errorMessage("이미 존재하는 유저입니다.");
-                } else if (error.response.status === 401) {
-                    errorMessage("공백이 있습니다.");
-                }
-            } else {
-                errorMessage("ETC Error");
-            }
+            const { message } = error.response.data;
+            errorMessage(message);
         }
     };
 
     return (
         <AuthContainer>
-                <AuthBox onSubmit={handleLogin}>
-                    <h2>Auth</h2>
-                    <h3>
-                        댓글 작성을 위한 인증입니다. 어떠한 개인 정보도 취합하지 않습니다.
-                    </h3>
+            <AuthBox onSubmit={handleLogin}>
+                <h2>Auth</h2>
+                <h3>
+                    댓글 작성을 위한 인증입니다. 어떠한 개인 정보도 취합하지 않습니다.
+                </h3>
+                <AuthInput>
                     <input
                         placeholder="username"
                         onChange={(e) => setLoginData((prevState) => ({ ...prevState, username: e.target.value }))}
@@ -97,11 +81,12 @@ const AuthPage: React.FC = () => {
                         onChange={(e) => setLoginData((prevState) => ({ ...prevState, password: e.target.value }))}
                         required
                     />
-                    <button type="submit">Login</button>
-                    <button type="button" onClick={handleRegister}>Register</button>
-                    <button onClick={() => navigate("/")}>HomePage</button>
-                    {/* <KakaoLogin /> */}
-                </AuthBox>
+                </AuthInput>
+                <button type="submit">Login</button>
+                <button type="button" onClick={handleRegister}>Register</button>
+                <button onClick={() => navigate("/")}>HomePage</button>
+                {/* <KakaoLogin /> */}
+            </AuthBox>
         </AuthContainer>
     );
 }
@@ -182,6 +167,13 @@ const AuthContainer = styled.div`
             padding: 0.25rem 0.75rem; 
         }
     }
+`;
+
+const AuthInput = styled.div`
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 `;
 
 const AuthBox = styled.form`
