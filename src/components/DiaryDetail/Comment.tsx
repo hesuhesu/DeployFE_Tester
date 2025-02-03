@@ -65,8 +65,16 @@ const Comment: React.FC<Props> = ({ params }) => {
         } catch (error) {
             if (error.response.status === 403) {
                 // Access Token이 만료된 경우 Refresh Token으로 재발급
-                await refreshAccessToken();
-                return handleAddComment(e); // 재시도
+                const refreshResult = await refreshAccessToken();
+                if (refreshResult) {
+                    return handleAddComment(e); // 재시도
+                } else {
+                    // Refresh Token도 만료된 경우
+                    errorMessage("토큰 만료. 로그인 해주세요");
+                    localStorage.clear();
+                    setLoadingMessage(false);
+                    return;
+                }
             }
             const { message } = error.response.data;
             setLoadingMessage(false); // 에러 발생 시 메시지 숨기기
@@ -102,8 +110,16 @@ const Comment: React.FC<Props> = ({ params }) => {
         } catch (error) {
             if (error.response.status === 403) {
                 // Access Token이 만료된 경우 Refresh Token으로 재발급
-                await refreshAccessToken();
-                return handleDeleteComment(index, username); // 재시도
+                const refreshResult = await refreshAccessToken();
+                if (refreshResult) {
+                    return handleDeleteComment(index, username); // 재시도
+                } else {
+                    // Refresh Token도 만료된 경우
+                    errorMessage("토큰 만료. 로그인 해주세요");
+                    localStorage.clear();
+                    setLoadingMessage(false);
+                    return;
+                }
             }
             const { message } = error.response.data;
             errorMessage(message);

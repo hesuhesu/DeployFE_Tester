@@ -41,7 +41,6 @@ const AuthPage: React.FC = () => {
         try {
             const response = await login(loginData);
             localStorage.setItem('accessToken', response.data.accessToken);
-            localStorage.setItem('refreshToken', response.data.refreshToken);
             successMessage("환영합니다 회원님!");
             navigate(-1);
             return;

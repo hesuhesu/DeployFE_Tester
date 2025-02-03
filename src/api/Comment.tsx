@@ -12,13 +12,16 @@ export const refreshAccessToken = async () => {
             {
                 headers: {
                     'Authorization': token  // Authorization 헤더 설정
-                }
+                },
+                withCredentials: true // 쿠키 포함 요청
             }
         );
 
         localStorage.setItem('accessToken', response.data.accessToken);
+        return true;
     } catch (error) {
         const { message } = error.response.data;
         errorMessage(message);
+        return false;
     }
 }
